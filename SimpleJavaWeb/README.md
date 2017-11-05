@@ -24,8 +24,9 @@ Steps to Follow:
 * Run SQL Query to Create New User and Grant Access to the Database
 
 ```
-create user 'testuser'@'%' identified by 'testpassword';
-grant all on *.* to 'testuser' identified by 'testpassword';
+create user 'testuser'@'localhost' identified by 'testpassword';
+GRANT ALL PRIVILEGES ON  *.* to 'mariadb'@'localhost';
+FLUSH PRIVILEGES;
 ```
 
 * Create Database and User Table
