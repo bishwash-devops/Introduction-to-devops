@@ -1,0 +1,8 @@
+jdk_version: java-1.8.0-openjdk
+jdk_home: "/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.144-0.b01.el7_4.x86_64"
+tomcat:
+  user: tcadmin
+  group: tcadmin
+  basedir: "/opt/tcserver"
+  version: "apache-tomcat-8.5.24"
+  url: "http://mirror.jax.hugeserver.com/apache/tomcat/tomcat-8/v8.5.24/bin/apache-tomcat-8.5.24.tar.gz"

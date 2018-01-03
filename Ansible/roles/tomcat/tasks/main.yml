@@ -1,0 +1,70 @@
+- name: Install Yum package
+  yum:
+    name: "{{item}}"
+    state: present
+  with_items:
+    - "{{jdk_version}}"
+    - "git"
+    - "wget"
+
+- name: Add group tcadmin
+  group:
+    name: "{{tomcat.group}}"
+
+- name: Create User tcadmin
+  user:
+    name: "{{tomcat.user}}"
+    group: "{{tomcat.group}}"
+    home: "/home/{{tomcat.user}}"
+
+- name: Create tomcat basedir
+  file:
+    path: "{{tomcat.basedir}}"
+    state: directory
+    owner: "{{tomcat.user}}"
+    group: "{{tomcat.group}}"
+
+# - name: Download tomcat 
+#   get_url:
+#     url: "{{tomcat.url}}"
+#     dest: "{{tomcat.basedir}}"
+
+# - name: Extract tomcat
+#   command: "tar -xvzf {{tomcat.version}}.tar.gz"
+#   args:
+#     chdir: "{{tomcat.basedir}}"
+
+- name: Unarchive tomcat
+  unarchive:
+    src: "{{tomcat.url}}"
+    dest: "{{tomcat.basedir}}"
+    remote_src: yes
+    creates: "{{tomcat.basedir}}/{{tomcat.version}}"
+
+
+- name: Symlink install directory
+  file:
+    path: "{{tomcat.basedir}}/tomcat"
+    src: "{{tomcat.basedir}}/{{tomcat.version}}"
+    state: link
+
+
+- name: Configure tomcat-users.xml
+  copy:
+    src: tomcat-users.xml
+    dest: "{{tomcat.basedir}}/tomcat/conf/tomcat-users.xml"
+
+- name: Set Bashrc
+  template:
+    src: "{{item.src}}"
+    dest: "{{item.dest}}"
+  with_items:
+    - { 'src': "bashrc.j2", "dest": "/home/{{tomcat.user}}/.bashrc" }
+
+- name: Change ownership of the installation directory
+  file:
+    path: "{{tomcat.basedir}}"
+    state: directory
+    owner: "{{tomcat.user}}"
+    group: "{{tomcat.group}}"
+    recurse: yes

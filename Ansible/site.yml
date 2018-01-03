@@ -1,0 +1,21 @@
+---
+- hosts: dbhosts
+  become: yes
+  become_user: root
+  roles:
+    - common
+    - mariadb
+
+
+- hosts: tcserver
+  become: yes
+  become_user: root
+  roles:
+    - common
+    - tomcat
+
+
+
+
+
+

@@ -1,0 +1,5 @@
+---
+- name: Install mariadb
+  yum:
+    name: mariadb-server
+    state: present
