@@ -1,19 +1,76 @@
 ---
-- hosts: dbhosts
+- hosts: all
   become: yes
   become_user: root
-  roles:
-    - common
-    - mariadb
+  vars:
+    jdk_version: java-1.8.0-openjdk
+    jdk_home: "/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.144-0.b01.el7_4.x86_64"
+    tomcat:
+      user: tcadmin
+      group: tcadmin
+      basedir: "/opt/tcserver"
+      version: "apache-tomcat-8.5.24"
+      url: "http://mirror.jax.hugeserver.com/apache/tomcat/tomcat-8/v8.5.24/bin/apache-tomcat-8.5.24.tar.gz"
+  tasks:
+    - name: Install Yum package
+      yum:
+        name: "{{item}}"
+        state: present
+      with_items:
+        - "{{jdk_version}}"
+        - "wget"
 
+    - name: Add group tcadmin
+      group:
+        name: "{{tomcat.group}}"
 
-- hosts: tcserver
-  become: yes
-  become_user: root
-  roles:
-    - common
-    - tomcat
+    - name: Create User tcadmin
+      user:
+        name: "{{tomcat.user}}"
+        group: "{{tomcat.group}}"
+        home: "/home/{{tomcat.user}}"
 
+    - name: Create tomcat basedir
+      file:
+        path: "{{tomcat.basedir}}"
+        state: directory
+        owner: "{{tomcat.user}}"
+        group: "{{tomcat.group}}"
+
+    - name: Unarchive tomcat
+      unarchive:
+        src: "{{tomcat.url}}"
+        dest: "{{tomcat.basedir}}"
+        remote_src: yes
+        creates: "{{tomcat.basedir}}/{{tomcat.version}}"
+
+    - name: Symlink install directory
+      file:
+        path: "{{tomcat.basedir}}/tomcat"
+        src: "{{tomcat.basedir}}/{{tomcat.version}}"
+        state: link
+
+    - name: Configure tomcat-users.xml
+      copy:
+        src: tomcat-users.xml
+        dest: "{{tomcat.basedir}}/tomcat/conf/tomcat-users.xml"
+
+    - name: Set Bashrc
+      lineinfile:
+        path: "/home/{{tomcat.user}}/.bashrc"
+        state: present
+        line: export JAVA_HOME="{{jdk_home}}"
+
+    - name: Change ownership of the installation directory
+      file:
+        path: "{{tomcat.basedir}}"
+        state: directory
+        owner: "{{tomcat.user}}"
+        group: "{{tomcat.group}}"
+        recurse: yes
+
+    - name: Start tomcat
+      command: "{{tomcat.basedir}}/tomcat/bin/startup.sh"
 
 
 
